@@ -9,9 +9,11 @@
 #include <set>
 #include <iomanip>
 #include <algorithm>
+#include <filesystem>
 #define ASIZE 26
 #define DEBUG 0
 using namespace std;
+namespace fs = std::filesystem;
 
 enum Mode { Exact, Prefix, Suffix };
 
@@ -35,7 +37,7 @@ struct pattern{
 
 // important map!
 map<pattern, set<int>> patterns_2_title_id;
-map<int, string> txt_id_2_name;
+vector<string> txt_id_2_name;
 
 struct AC {
     struct node{
@@ -64,10 +66,10 @@ struct AC {
     }
 
     void finish_trie(){
-        if(DEBUG){
-            dfs_print_trie();
-            cout << '\n';
-        }
+        //if(DEBUG){
+            //dfs_print_trie();
+            //cout << '\n';
+        //}
         build_fail_ptr();
     }
 
@@ -271,13 +273,13 @@ vector<string> split(const string& str, const string& delim) {
 int main(int argc, char *argv[])
 {	
     string data_dir = "./data-more/";
-    int data_dir_num = 1000;
     string query = "./query_more.txt";
     string output;
 
     data_dir = argv[1] + string("/");
     query = string(argv[2]);
     output = string(argv[3]);
+    int data_dir_num = distance(fs::directory_iterator(data_dir), fs::directory_iterator{});
 
 	string file, title_name, tmp;
 	fstream fi, fo;
@@ -293,19 +295,12 @@ int main(int argc, char *argv[])
         vector<pattern> one_query_patterns = process_query(tmp_string);
         for(pattern p : one_query_patterns){
             ac_trie.add_trie(p.str);
-            patterns_2_title_id[p]; // add key with no value
         }
     }
 
     ac_trie.finish_trie();
 
     fi.close();
-    /*ac_trie.look_for(string("decomposition"));
-
-    for(string word : ac_trie.trie[36].end_str){
-        cout << word << '\n';
-    }
-    cout << '\n';*/
 
     // start data search
     for(int txt_id=0; txt_id<data_dir_num; txt_id++){
@@ -315,16 +310,10 @@ int main(int argc, char *argv[])
         getline(fi, title_name);
 
         // insert in title_id_2_name
-        txt_id_2_name[txt_id] = title_name;
+        txt_id_2_name.push_back(title_name);
 
         // GET TITLENAME WORD ARRAY
         tmp_string = split(title_name, " ");
-
-        if(DEBUG){
-            if(title_name == ""){
-                cout << '"' << title_name << "\" is txt id " << txt_id << '\n';
-            }
-        }
 
         vector<string> title = word_parse(tmp_string);
 
@@ -352,17 +341,7 @@ int main(int argc, char *argv[])
     }
     // end of data search
 
-    if(DEBUG){
-        cout << "# query patterns: " << patterns_2_title_id.size() << '\n';
-        for(auto it = patterns_2_title_id.begin(); it != patterns_2_title_id.end(); it++){
-            cout << (it->first).str << ' ' << what_mode[((it->first).mode)] << '\n';
-            for(auto inner_it = (it->second).begin(); inner_it != (it->second).end(); inner_it++){
-                cout << txt_id_2_name[*inner_it] << '\n';
-            }
-            cout << '\n';
-        }
-    }
-
+    // eat query again and make output
     fi.open(query, ios::in);
     fo.open(output, ios::out);
 
@@ -391,7 +370,7 @@ int main(int argc, char *argv[])
                                      patterns_2_title_id[pat].begin(), patterns_2_title_id[pat].end(),
                                      inserter(new_ans, new_ans.begin()));
                 }
-                ans = new_ans;
+                swap(ans, new_ans); // instead of ans = new_ans;
             }
         }
 
