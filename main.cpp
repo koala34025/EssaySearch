@@ -31,7 +31,7 @@ struct pattern{
     }
 
     bool operator<(const pattern rhs) const{
-        return str == rhs.str ? mode < rhs.mode : str < rhs.str;
+        return mode == rhs.mode ? str < rhs.str : mode < rhs.mode;
     }
 };
 
@@ -143,7 +143,7 @@ struct AC {
         current = 0;
     }
 
-    void look_for(string word){
+    void look_for(const string& word){
         cout << "look for: " << word << '\n';
         int now = 0;
         for(char c : word){
@@ -154,7 +154,7 @@ struct AC {
         cout << "----------------------------\n";
     }
 
-    void query(string word, int txt_id){
+    void query(const string& word, int txt_id){
         int now = 0;
         int len = word.size();
         for(int i=0; i<len; i++){
@@ -180,8 +180,6 @@ struct AC {
                 }
 
             }
-
-
         }
     }
 };
@@ -189,7 +187,7 @@ struct AC {
 // Utility Func
 
 // string parser : output vector of strings (words) after parsing
-vector<string> word_parse(vector<string> tmp_string){
+vector<string> word_parse(const vector<string>& tmp_string){
 	vector<string> parse_string;
 	for(auto& word : tmp_string){
 		string new_str;
@@ -202,7 +200,7 @@ vector<string> word_parse(vector<string> tmp_string){
 	return parse_string;
 }
 
-vector<pattern> process_query(vector<string> tmp_string){
+vector<pattern> process_query(const vector<string>& tmp_string){
     vector<pattern> parse_string;
     for(auto& word : tmp_string){
 		string new_str;
@@ -228,7 +226,7 @@ vector<pattern> process_query(vector<string> tmp_string){
 	return parse_string;
 }
 
-pattern make_pattern(string word){
+pattern make_pattern(const string& word){
     string new_str;
     int mode;
 
@@ -285,7 +283,7 @@ int main(int argc, char *argv[])
 	fstream fi, fo;
 	vector<string> tmp_string;
 
-    // process query, AC, and map<pattern -> vector<title id>>
+    // process query, AC, and map<pattern -> set<title id>>
     AC ac_trie;
 
     fi.open(query, ios::in);
@@ -318,7 +316,7 @@ int main(int argc, char *argv[])
         vector<string> title = word_parse(tmp_string);
 
         for(auto &word : title){
-        	ac_trie.query(word, txt_id);
+            ac_trie.query(word, txt_id);
         }
 
         // GET CONTENT LINE BY LINE
